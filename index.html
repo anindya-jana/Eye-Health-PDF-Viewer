@@ -415,10 +415,24 @@
           offCtx.globalCompositeOperation = 'multiply';
           offCtx.drawImage(canvas, 0, 0);
           
-          const a = document.createElement('a');
-          a.href = offscreenCanvas.toDataURL('image/png');
-          a.download = `screenshot-${pdf.file.name}-page-${pageNum}.png`;
-          a.click();
+          offscreenCanvas.toBlob(async (blob) => {
+            try {
+              const item = new ClipboardItem({ 'image/png': blob });
+              await navigator.clipboard.write([item]);
+              
+              // Visual feedback
+              const originalText = screenshotBtn.innerHTML;
+              screenshotBtn.innerHTML = '✅ Copied!';
+              screenshotBtn.style.backgroundColor = '#4facfe';
+              setTimeout(() => { 
+                screenshotBtn.innerHTML = originalText;
+                screenshotBtn.style.backgroundColor = '';
+              }, 1500);
+            } catch (err) {
+              console.error('Failed to copy: ', err);
+              alert('Clipboard access denied or unsupported. Please ensure permissions are granted.');
+            }
+          }, 'image/png');
         };
         
         wrapper.appendChild(canvas);
